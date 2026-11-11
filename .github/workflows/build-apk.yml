@@ -3,6 +3,8 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,8 +14,10 @@ jobs:
         include:
           - dir: brum-brum
             name: BrumBrum
+            title: "¡Brum brum!"
           - dir: route-des-sons
             name: RouteDesSons
+            title: La route des sons
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -34,3 +38,12 @@ jobs:
         with:
           name: ${{ matrix.name }}-apk
           path: ${{ matrix.name }}.apk
+      - name: Publier l'APK (Release)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.dir }}-latest
+          name: ${{ matrix.title }} (dernière version)
+          body: "APK compilée automatiquement depuis le commit ${{ github.sha }}. Télécharger ${{ matrix.name }}.apk ci-dessous et l'installer sur Android."
+          files: ${{ matrix.name }}.apk
+          make_latest: false
